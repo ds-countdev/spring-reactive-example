@@ -21,8 +21,8 @@ import com.springboot.reactive.mscv.app.model.Comment;
 import com.springboot.reactive.mscv.app.model.User;
 import com.springboot.reactive.mscv.app.model.UserComments;
 import com.springboot.reactive.mscv.app.reactor.ReactorMethods;
+import com.springboot.reactive.mscv.app.reactor.ReactorMethodsTwo;
 
-import lombok.experimental.var;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -34,13 +34,17 @@ public class SpringBootReactiveApplication implements CommandLineRunner {
 	@Autowired
 	private ReactorMethods reactorMethods;
 
+	@Autowired
+	private ReactorMethodsTwo reactorMethodsTwo;
+
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootReactiveApplication.class, args);
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
-		backPressureExample();
+		var names = List.of("diego Doe","alejandro doe", "diego alejandro");
+		reactorMethodsTwo.userCommentsZipWith();
 	}
 
 	public void backPressureExample(){
