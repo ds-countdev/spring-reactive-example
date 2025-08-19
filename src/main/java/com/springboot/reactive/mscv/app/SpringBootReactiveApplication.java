@@ -44,7 +44,7 @@ public class SpringBootReactiveApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		var names = List.of("diego Doe","alejandro doe", "diego alejandro");
-		reactorMethodsTwo.userCommentsZipWith();
+		reactorMethodsTwo.retryInterval();;
 	}
 
 	public void backPressureExample(){

@@ -1,7 +1,9 @@
 package com.springboot.reactive.mscv.app.reactor;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -113,11 +115,75 @@ public class ReactorMethodsTwo {
                     .addComments("whats up");
         });
 
+        monoUser.zipWith(comments, (user, comment) -> new UserComments(user, comment))
+                .subscribe(value -> log.info(value.toString()));
 
-        monoUser.zipWith(comments, (user, comment) 
-            ->  new UserComments(user, comment))
-        .subscribe(value -> log.info(value.toString()));
+    }
 
+    public void userCommentsZipWithTwo() {
+
+        var monoUser = Mono.just(new User("Diego", "Rodriguez"));
+
+        var monoComment = Mono.fromCallable(() -> new Comment()
+                .addComments("Hello")
+                .addComments("world"));
+
+        monoUser.zipWith(monoComment).map(tuple -> new UserComments(tuple.getT1(), tuple.getT2()))
+                .subscribe(userComment -> log.info(userComment.toString()));
+
+    }
+
+    public void zipWithRange() {
+
+        Flux.just(1, 2, 3, 4, 5)
+                .map(value -> value * 2)
+                .zipWith(Flux.range(0, 7), (num, ran) -> String.format("num is : %d , and ran is : %d", num, ran))
+                .subscribe(value -> log.info(value.toString()));
+    }
+
+    public void zipWithRangeTwo() {
+        Flux.just(1, 2, 3, 4, 5)
+                .map(value -> value + 2)
+                .zipWith(Flux.range(0, 4))
+                .map(tuple -> String.format("num is : %d, and ran is : %d", tuple.getT1(), tuple.getT2()))
+                .subscribe(value -> log.info(value));
+    }
+
+    // delay from starts
+    public void interval() {
+        var range = Flux.range(0, 10);
+        var delay = Flux.interval(Duration.ofSeconds(3));
+
+        range.zipWith(delay, (ran, del) -> ran)
+                .doOnNext(value -> log.info(value.toString()))
+                .blockLast();
+    }
+
+    public void intervalElements() {
+
+        Flux.range(0, 10)
+                .log()
+                .delayElements(Duration.ofSeconds(3))
+                .doOnNext(value -> log.info(value.toString()))
+                .subscribe();
+    }
+
+    public void retryInterval() throws InterruptedException{
+        CountDownLatch latch = new CountDownLatch(2);
+
+        Flux.interval(Duration.ofSeconds(1))
+        .doOnTerminate(latch::countDown)
+        .flatMap(value -> {
+            
+            if (value >= 2) return Flux.error(new InterruptedException("No more than five"));
+            
+            return Flux.just(value);
+        })
+        .retry(2)
+        .map(value -> "h : " + value)
+        .subscribe(value -> log.info(value), error -> log.error(error.getMessage()));
+
+        latch.await();
     }
 
 }
